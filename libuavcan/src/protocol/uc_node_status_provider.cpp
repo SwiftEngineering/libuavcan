@@ -22,7 +22,7 @@ int NodeStatusProvider::publish()
     node_info_.status.uptime_sec = uint32_t(uptime.toMSec() / 1000);
 
     UAVCAN_ASSERT(node_info_.status.health <= protocol::NodeStatus::FieldTypes::health::max());
-
+return 0; //BE????temp. to check pgm getting lost on node start and publish
     return node_status_pub_.broadcast(node_info_.status);
 }
 

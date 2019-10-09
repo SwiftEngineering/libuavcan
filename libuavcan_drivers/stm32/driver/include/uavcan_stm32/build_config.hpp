@@ -20,21 +20,23 @@
 #endif
 
 #ifndef UAVCAN_STM32_FREERTOS
-# define UAVCAN_STM32_FREERTOS 0
+# define UAVCAN_STM32_FREERTOS 1
 #endif
 
 /**
  * Number of interfaces must be enabled explicitly
  */
+#define UAVCAN_STM32_NUM_IFACES  1
 #if !defined(UAVCAN_STM32_NUM_IFACES) || (UAVCAN_STM32_NUM_IFACES != 1 && UAVCAN_STM32_NUM_IFACES != 2)
-# error "UAVCAN_STM32_NUM_IFACES must be set to either 1 or 2"
+#error "UAVCAN_STM32_NUM_IFACES must be set to either 1 or 2"
 #endif
 
 /**
  * Any General-Purpose timer (TIM2, TIM3, TIM4, TIM5)
  * e.g. -DUAVCAN_STM32_TIMER_NUMBER=2
  */
+#define UAVCAN_STM32_TIMER_NUMBER 2
 #ifndef UAVCAN_STM32_TIMER_NUMBER
 // In this case the clock driver should be implemented by the application
-# define UAVCAN_STM32_TIMER_NUMBER 0
+# define UAVCAN_STM32_TIMER_NUMBER 2
 #endif

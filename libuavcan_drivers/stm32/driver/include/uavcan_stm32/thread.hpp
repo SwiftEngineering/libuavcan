@@ -6,6 +6,10 @@
 
 #include <uavcan_stm32/build_config.hpp>
 
+
+#define UAVCAN_STM32_FREERTOS 1
+
+
 #if UAVCAN_STM32_CHIBIOS
 # include <ch.hpp>
 #elif UAVCAN_STM32_NUTTX

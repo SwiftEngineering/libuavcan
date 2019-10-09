@@ -12,6 +12,7 @@
 #include <uavcan/Timestamp.hpp>
 
 
+
 namespace uavcan
 {
 

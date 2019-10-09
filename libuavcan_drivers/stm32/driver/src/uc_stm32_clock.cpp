@@ -6,6 +6,17 @@
 #include <uavcan_stm32/thread.hpp>
 #include "internal.hpp"
 
+//BE+++
+#include "stm32l4a6xx.h"
+#include "stm32l4xx.h"
+#include "system_stm32l4xx.h"
+#include "chip.h"
+
+#define RCC_APB1ENR_TIM2EN 0x00000001
+#define RCC_APB1RSTR_TIM2RST 0x00000001
+
+#define STM32L4xx
+#define UAVCAN_STM32_FREERTOS 1
 #if UAVCAN_STM32_TIMER_NUMBER
 
 #include <cassert>
@@ -38,11 +49,19 @@
 # endif
 
 # if UAVCAN_STM32_TIMER_NUMBER >= 2 && UAVCAN_STM32_TIMER_NUMBER <= 7
-#  define TIMX_RCC_ENR           RCC->APB1ENR
-#  define TIMX_RCC_RSTR          RCC->APB1RSTR
-#  define TIMX_RCC_ENR_MASK      UAVCAN_STM32_GLUE3(RCC_APB1ENR_TIM,  UAVCAN_STM32_TIMER_NUMBER, EN)
-#  define TIMX_RCC_RSTR_MASK     UAVCAN_STM32_GLUE3(RCC_APB1RSTR_TIM, UAVCAN_STM32_TIMER_NUMBER, RST)
-# else
+#if defined (STM32L4xx)
+//BE+++
+#define TIMX_RCC_ENR 	RCC->APB1ENR1
+#define TIMX_RCC_RSTR	RCC->APB1RSTR1
+#define TIMX_RCC_ENR_MASK	UAVCAN_STM32_GLUE3(RCC_APB1ENR1_TIM, UAVCAN_STM32_TIMER_NUMBER, EN)
+#define TIMX_RCC_RSTR_MASK	UAVCAN_STM32_GLUE3(RCC_APB1RSTR1_TIM, UAVCAN_STM32_TIMER_NUMBER, RST)
+#else
+#define TIMX_RCC_ENR 	RCC->APB1ENR
+#define TIMX_RCC_RSTR	RCC->APB1RSTR
+#define TIMX_RCC_ENR_MASK     	UAVCAN_STM32_GLUE3(RCC_APB1ENR_TIM,  UAVCAN_STM32_TIMER_NUMBER, EN)
+# define TIMX_RCC_RSTR_MASK    	UAVCAN_STM32_GLUE3(RCC_APB1RSTR_TIM, UAVCAN_STM32_TIMER_NUMBER, RST)
+#endif  //BE++
+#else
 #  error "This UAVCAN_STM32_TIMER_NUMBER is not supported yet"
 # endif
 
@@ -441,7 +460,18 @@ SystemClock& SystemClock::instance()
     return *ptr;
 }
 
+
+
+uavcan::ISystemClock& getSystemClock()
+{
+	return SystemClock::instance();
+}
+
+
+
 } // namespace uavcan_stm32
+
+
 
 
 /**

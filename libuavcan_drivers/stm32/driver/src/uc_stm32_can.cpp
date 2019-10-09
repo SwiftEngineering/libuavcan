@@ -8,6 +8,14 @@
 #include <uavcan_stm32/clock.hpp>
 #include "internal.hpp"
 
+#include "stm32l4a6xx.h"
+#include "stm32l4xx.h"
+#include "system_stm32l4xx.h"
+
+#include "stm32l4xx_hal.h"
+#include "stm32l4xx.h"
+#include "stm32l4xx_it.h"
+#include "stm32l4A6xx.h"
 #if UAVCAN_STM32_CHIBIOS
 # include <hal.h>
 #elif UAVCAN_STM32_NUTTX
@@ -536,7 +544,7 @@ uavcan::int16_t CanIface::configureFilters(const uavcan::CanFilterConfig* filter
 bool CanIface::waitMsrINakBitStateChange(bool target_state)
 {
 #if UAVCAN_STM32_NUTTX || UAVCAN_STM32_CHIBIOS || UAVCAN_STM32_FREERTOS
-    const unsigned Timeout = 1000;
+    const unsigned Timeout = 2000000;//was 1000
 #else
     const unsigned Timeout = 2000000;
 #endif
@@ -558,7 +566,7 @@ bool CanIface::waitMsrINakBitStateChange(bool target_state)
 #endif
 #endif
 #if UAVCAN_STM32_FREERTOS
-        ::osDelay(1);
+        ::osDelay(10000);
 #endif
     }
     return false;
@@ -624,6 +632,8 @@ int CanIface::init(const uavcan::uint32_t bitrate, const OperatingMode mode)
                 bxcan::IER_FMPIE1;   // RX FIFO 1 is not empty
 
     can_->MCR &= ~bxcan::MCR_INRQ;   // Leave init mode
+ //BE????
+    for (uint16_t lrgCntr = 0; lrgCntr < 60000; lrgCntr++);
 
     if (!waitMsrINakBitStateChange(false))
     {
@@ -983,6 +993,7 @@ void CanDriver::initOnce()
      */
     {
         CriticalSectionLocker lock;
+        			//Turn on the clocks (in the settings)
 #if UAVCAN_STM32_NUTTX
         modifyreg32(STM32_RCC_APB1ENR,  0, RCC_APB1ENR_CAN1EN);
         modifyreg32(STM32_RCC_APB1RSTR, 0, RCC_APB1RSTR_CAN1RST);
@@ -992,15 +1003,19 @@ void CanDriver::initOnce()
         modifyreg32(STM32_RCC_APB1RSTR, 0, RCC_APB1RSTR_CAN2RST);
         modifyreg32(STM32_RCC_APB1RSTR, RCC_APB1RSTR_CAN2RST, 0);
 # endif
-#else
-        RCC->APB1ENR  |=  RCC_APB1ENR_CAN1EN;
-        RCC->APB1RSTR |=  RCC_APB1RSTR_CAN1RST;
-        RCC->APB1RSTR &= ~RCC_APB1RSTR_CAN1RST;
+#else  //BE???? Maybe we should do a #ifdef stm32L4 for all of these
+        //BE????
+
+        RCC->APB1ENR1  |=  RCC_APB1ENR1_CAN1EN;
+        RCC->APB1RSTR1 |=  RCC_APB1RSTR1_CAN1RST;
+        RCC->APB1RSTR1 &= ~RCC_APB1RSTR1_CAN1RST;
+
 # if UAVCAN_STM32_NUM_IFACES > 1
-        RCC->APB1ENR  |=  RCC_APB1ENR_CAN2EN;
-        RCC->APB1RSTR |=  RCC_APB1RSTR_CAN2RST;
-        RCC->APB1RSTR &= ~RCC_APB1RSTR_CAN2RST;
+        RCC->APB1ENR1  |=  RCC_APB1ENR1_CAN2EN;
+        RCC->APB1RSTR1 |=  RCC_APB1RSTR1_CAN2RST;
+        RCC->APB1RSTR1 &= ~RCC_APB1RSTR1_CAN2RST;
 # endif
+
 #endif
     }
 
@@ -1172,7 +1187,7 @@ static int can2_irq(const int irq, void*, void*)
     !defined(CAN1_RX1_IRQHandler)
 # error "Misconfigured build"
 #endif
-
+/*
 UAVCAN_STM32_IRQ_HANDLER(CAN1_TX_IRQHandler);
 UAVCAN_STM32_IRQ_HANDLER(CAN1_TX_IRQHandler)
 {
@@ -1196,7 +1211,7 @@ UAVCAN_STM32_IRQ_HANDLER(CAN1_RX1_IRQHandler)
     uavcan_stm32::handleRxInterrupt(0, 1);
     UAVCAN_STM32_IRQ_EPILOGUE();
 }
-
+*/
 # if UAVCAN_STM32_NUM_IFACES > 1
 
 #if !defined(CAN2_TX_IRQHandler) ||\
